@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/**/*.js": {
+      "includeFiles": "node_modules/.prisma/**"
+    }
+  },
   "crons": [
     {
       "path": "/api/cron/monthly",
