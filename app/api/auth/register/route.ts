@@ -5,6 +5,9 @@ import { hash } from "bcrypt"
 
 export async function POST(req: Request) {
   try {
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json({ error: "Missing DATABASE_URL. Set it in your environment (e.g. .env.local) and run 'npm run prisma:push'." }, { status: 500 })
+    }
     const schema = z.object({ name: z.string().min(2), email: z.string().email(), password: z.string().min(6) })
     const json = await req.json()
     const parsed = schema.safeParse(json)
@@ -18,6 +21,9 @@ export async function POST(req: Request) {
     await prisma.user.create({ data: { name, email, password: hashed, role: "teacher" } })
     return NextResponse.json({ ok: true })
   } catch (e) {
-    return NextResponse.json({ error: "Registration failed. Please check server configuration." }, { status: 500 })
+    const msg = (e as any)?.code === 'P2002'
+      ? 'Email already registered'
+      : (e as any)?.message || 'Registration failed. Please check server configuration.'
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
